@@ -15,7 +15,7 @@ func init() {
 	ctx := context.Background()
 	var opt option.ClientOption
 	if os.Getenv("ENV") == "PROD" {
-		opt = option.WithCredentialsFile("serviceAccount.json")
+		opt = option.WithCredentialsFile(os.Getenv("SERVICE_ACCOUNT"))
 	} else {
 		opt = option.WithCredentialsFile("serviceAccountDEV.json")
 	}
