@@ -1,0 +1,12 @@
+{
+  "name": "Golang CV",
+  "description": "Go Getting Started Example App",
+  "keywords": [
+    "getting-started",
+    "go",
+    "sample",
+    "example"
+  ],
+  "website": "https://github.com/jLemmings/GoCV",
+  "repository": "https://github.com/jLemmings/GoCV"
+}
