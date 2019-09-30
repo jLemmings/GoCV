@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"os"
+	"time"
 )
 
 var db *gorm.DB
@@ -24,20 +25,35 @@ func init() {
 	if err != nil {
 		log.Fatalf("Error opening database: %q", err)
 	}
-	database.AutoMigrate(&User{})
 
 	db = database
 }
 
 func InitializeDB(firstName string, lastName string, email string, password string, github string) {
 	firstUser := User{
-		FirstName: firstName,
-		LastName:  lastName,
-		Email:     email,
-		Password:  password,
-		Bio: "EDIT ME",
+		FirstName:     firstName,
+		LastName:      lastName,
+		Email:         email,
+		Password:      password,
+		Bio:           "EDIT ME",
 		GithubProfile: github,
+		Experience: Experience{
+			ID:          "12",
+			Title:       "Test",
+			Description: "Demo",
+			From:        time.Time{},
+			To:          time.Time{},
+			Tasks:       nil,
+		},
+		Education: Education{
+			ID:        "12",
+			Title:     "Demo",
+			Institute: "Account",
+			From:      time.Time{},
+			To:        time.Time{},
+		},
 	}
+
 	firstUser.Create()
 }
 

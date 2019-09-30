@@ -15,6 +15,8 @@ type User struct {
 	Password      string `gorm:"-"`
 	Bio           string
 	GithubProfile string
+	Experience    Experience `gorm:"foreignkey:UserID"`
+	Education     Education  `gorm:"foreignkey:UserID"`
 }
 
 func (user *User) Validate() (map[string]interface{}, bool) {
@@ -51,6 +53,8 @@ func (user *User) Create() map[string]interface{} {
 	utils.HandleErr(err)
 
 	user.ID = fireUser.UID
+
+	fmt.Println(user)
 
 	GetDB().Create(user)
 

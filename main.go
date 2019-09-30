@@ -34,11 +34,18 @@ func main() {
 		}
 	}
 
+	models.GetDB().AutoMigrate(
+		&models.User{},
+		&models.Experience{},
+		&models.Education{},
+	)
+
 	users := models.GetDB().First(&models.User{})
 	if users.Error != nil {
 		if *firstName == "" || *lastName == "" || *email == "" || *password == "" || *github == "" {
 			log.Fatal("For setup please enter your user information.")
 		}
+
 		models.InitializeDB(*firstName, *lastName, *email, *password, *github)
 	}
 
