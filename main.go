@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jLemmings/GoCV/controllers"
@@ -21,20 +20,8 @@ func helloWorld(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	firstName := flag.String("firstName", "", "Your first name [STRING]")
-	lastName := flag.String("lastName", "", "Your last name [STRING]")
-	email := flag.String("email", "", "Your email [STRING]")
-	password := flag.String("password", "", "Your password [STRING]")
-	github := flag.String("github", "", "Your GitHub Profile [STRING]")
-	flag.Parse()
-
 	if os.Getenv("ENV") != "PROD" {
 		err := godotenv.Load()
-		*firstName = os.Getenv("firstName")
-		*lastName = os.Getenv("lastName")
-		*email = os.Getenv("email")
-		*password = os.Getenv("password")
-		*github = os.Getenv("github")
 
 		if err != nil {
 			log.Println("Error loading .env.production file")
@@ -49,12 +36,12 @@ func main() {
 
 	users := models.GetDB().First(&models.User{})
 	if users.Error != nil {
-		fmt.Println("FirstName: ", *firstName, "LastName: ", *lastName, "Email: ", *email, "Password: ", *password, "Github: ", *github)
-		if *firstName == "" || *lastName == "" || *email == "" || *password == "" || *github == "" {
+		fmt.Println(os.Getenv("firstName"))
+		if os.Getenv("firstName") == "" || os.Getenv("lastName") == "" || os.Getenv("email") == "" || os.Getenv("password") == "" || os.Getenv("github") == "" {
 			log.Fatal("For setup please enter your user information.")
 		}
 
-		models.InitializeDB(*firstName, *lastName, *email, *password, *github)
+		models.InitializeDB(os.Getenv("firstName"), os.Getenv("lastName"), os.Getenv("email"), os.Getenv("password"), os.Getenv("github"))
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
