@@ -29,6 +29,12 @@ func main() {
 
 	if os.Getenv("ENV") != "PROD" {
 		err := godotenv.Load()
+		*firstName = os.Getenv("firstName")
+		*lastName = os.Getenv("lastName")
+		*email = os.Getenv("email")
+		*password = os.Getenv("password")
+		*github = os.Getenv("github")
+
 		if err != nil {
 			log.Println("Error loading .env.production file")
 		}
