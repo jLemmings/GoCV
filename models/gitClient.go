@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"github.com/google/go-github/v28/github"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
@@ -20,8 +19,7 @@ func init() {
 			log.Println("Error loading .env.production file")
 		}
 	}
-	gitKey := os.Getenv("GITHUB_KEY")
-	fmt.Println(gitKey)
+
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: os.Getenv("GITHUB_KEY")},
 	)

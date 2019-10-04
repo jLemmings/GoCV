@@ -4,7 +4,6 @@ import (
 	"context"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"fmt"
 	"google.golang.org/api/option"
 	"log"
 	"os"
@@ -17,7 +16,6 @@ func init() {
 	var opt option.ClientOption
 	if os.Getenv("ENV") == "PROD" {
 		opt = option.WithCredentialsJSON([]byte(os.Getenv("SERVICE_ACCOUNT")))
-		fmt.Println("OPTIONS: ", opt)
 	} else {
 		opt = option.WithCredentialsFile("serviceAccountDEV.json")
 	}
