@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jLemmings/GoCV/controllers"
 	"github.com/jLemmings/GoCV/middleware"
@@ -48,6 +49,7 @@ func main() {
 
 	users := models.GetDB().First(&models.User{})
 	if users.Error != nil {
+		fmt.Println("FirstName: ", *firstName, "LastName: ", *lastName, "Email: ", *email, "Password: ", *password, "Github: ", *github)
 		if *firstName == "" || *lastName == "" || *email == "" || *password == "" || *github == "" {
 			log.Fatal("For setup please enter your user information.")
 		}
