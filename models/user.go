@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-github/v28/github"
 	"github.com/jLemmings/GoCV/utils"
 	"log"
+	"time"
 )
 
 type User struct {
@@ -17,9 +18,9 @@ type User struct {
 	Password      string
 	Bio           string
 	GithubProfile string
-	Experience    Experience
-	Education     Education
-	Projects      []*github.Repository
+	Experience    []Experience
+	Education     []Education
+	Projects      []Project
 }
 
 func (user *User) Validate() (map[string]interface{}, bool) {
@@ -56,6 +57,21 @@ func (user *User) Create() map[string]interface{} {
 	utils.HandleErr(err)
 
 	user.ID = fireUser.UID
+
+	user.Experience = []Experience{{
+		Title:       "My Title",
+		Description: "My Description",
+		From:        time.Time{},
+		To:          time.Time{},
+		Tasks:       []string{"Test", "bob", "Fred"},
+	}}
+
+	user.Education = []Education{{
+		Title:     "My Title",
+		Institute: "My Institute",
+		From:      time.Time{},
+		To:        time.Time{},
+	}}
 
 	err = GetDB().NewRef("users/"+user.ID).Set(context.Background(), user)
 	if err != nil {
@@ -122,15 +138,15 @@ func InitializeFirstUser(firstName string, lastName string, email string, passwo
 		Password:      password,
 		Bio:           "",
 		GithubProfile: github,
-		Experience:    Experience{},
-		Education:     Education{},
+		Experience:    []Experience{},
+		Education:     []Education{},
 	}
 
 	log.Println(user)
 	user.Create()
 }
 
-func getProjects(githubProfile string) []*github.Repository {
+func getProjects(githubProfile string) []Project {
 	opt := &github.RepositoryListOptions{Type: "public"}
 
 	var allRepos []*github.Repository
@@ -160,10 +176,8 @@ func getProjects(githubProfile string) []*github.Repository {
 		if repo.Language != nil {
 			project.Language = *repo.Language
 		}
-
 		responseRepos = append(responseRepos, project)
-
 	}
 
-	return allRepos
+	return responseRepos
 }
