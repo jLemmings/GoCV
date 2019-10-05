@@ -39,13 +39,6 @@ var GetUser = func(w http.ResponseWriter, r *http.Request) {
 	utils.Respond(w, resp)
 }
 
-var DeleteUser = func(w http.ResponseWriter, r *http.Request) {
-	request := mux.Vars(r)
-	models.DeleteUser(request["id"])
-	resp := utils.Message(true, "success")
-	utils.Respond(w, resp)
-}
-
 var UpdateUser = func(w http.ResponseWriter, r *http.Request) {
 	request := mux.Vars(r)
 

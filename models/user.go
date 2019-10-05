@@ -5,6 +5,7 @@ import (
 	"firebase.google.com/go/auth"
 	"fmt"
 	"github.com/jLemmings/GoCV/utils"
+	"log"
 )
 
 type User struct {
@@ -54,9 +55,10 @@ func (user *User) Create() map[string]interface{} {
 
 	user.ID = fireUser.UID
 
-	fmt.Println(user)
-
-	GetDB().Create(user)
+	err = GetDB().NewRef("users/"+user.ID).Set(context.Background(), user)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	resp := utils.Message(true, "success")
 	resp["user"] = user
@@ -65,7 +67,7 @@ func (user *User) Create() map[string]interface{} {
 
 func GetUsers() []*User {
 	users := make([]*User, 0)
-	err := GetDB().Table("users").Find(&users).Error
+	err := GetDB().NewRef("users").OrderByValue().Get(context.Background(), &User{})
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -74,43 +76,52 @@ func GetUsers() []*User {
 }
 
 func GetUser(userId string) *User {
-	users := &User{}
-	err := GetDB().Table("users").Where("id = ?", userId).First(&users).Error
-
+	results, err := GetDB().NewRef("users").OrderByKey().EqualTo(userId).GetOrdered(context.Background())
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		log.Fatalln("Error querying database:", err)
 	}
-	return users
+
+	for _, r := range results {
+		var user User
+		if err := r.Unmarshal(&user); err != nil {
+			log.Fatalln("Error unmarshaling result:", err)
+		}
+		return &user
+	}
+	return &User{}
 }
 
-func UpdateUser(id string, userToUpdate User) *User {
+func UpdateUser(userId string, userToUpdate User) *User {
 	user := &User{}
-	err := GetDB().Table("users").Where("id = ?", id).First(&user).Error
-
-	if userToUpdate.FirstName != "" {
-		user.FirstName = userToUpdate.FirstName
-	}
-
-	if userToUpdate.LastName != "" {
-		user.LastName = userToUpdate.LastName
-	}
-	if userToUpdate.Bio != "" {
-		user.Bio = userToUpdate.Bio
-	}
-
-	GetDB().Save(&user)
+	err := GetDB().NewRef("users"+userId).Update(context.Background(), map[string]interface{}{
+		"FirstName":     userToUpdate.FirstName,
+		"LastName":      userToUpdate.LastName,
+		"Email":         userToUpdate.Email,
+		"Password":      userToUpdate.Password,
+		"Bio":           userToUpdate.Password,
+		"GithubProfile": userToUpdate.GithubProfile,
+		"Experience":    userToUpdate.Experience,
+		"Education":     userToUpdate.Education,
+	})
 
 	if err != nil {
-		fmt.Println(err)
-		return nil
+		log.Println("Error updating user: ", err)
 	}
 	return user
 }
 
-func DeleteUser(userId string) {
-	err := GetDB().Where("id = ?", userId).Delete(&User{})
-	if err != nil {
-		fmt.Println(err)
+func InitializeFirstUser(firstName string, lastName string, email string, password string, github string) {
+	user := User{
+		FirstName:     firstName,
+		LastName:      lastName,
+		Email:         email,
+		Password:      password,
+		Bio:           "",
+		GithubProfile: github,
+		Experience:    Experience{},
+		Education:     Education{},
 	}
+
+	log.Println(user)
+	user.Create()
 }

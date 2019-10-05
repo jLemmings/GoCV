@@ -4,12 +4,14 @@ import (
 	"context"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
+	"firebase.google.com/go/db"
 	"google.golang.org/api/option"
 	"log"
 	"os"
 )
 
 var fireAuth *auth.Client
+var fireDB *db.Client
 
 func init() {
 	ctx := context.Background()
@@ -19,7 +21,12 @@ func init() {
 	} else {
 		opt = option.WithCredentialsFile("serviceAccountDEV.json")
 	}
-	app, err := firebase.NewApp(ctx, nil, opt)
+
+	config := &firebase.Config{
+		DatabaseURL: "https://golang-cv-dev.firebaseio.com/",
+	}
+
+	app, err := firebase.NewApp(ctx, config, opt)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
@@ -30,8 +37,19 @@ func init() {
 	}
 
 	fireAuth = client
+
+	database, err := app.Database(ctx)
+	if err != nil {
+		log.Fatalf("error getting Auth client: %v\n", err)
+	}
+
+	fireDB = database
 }
 
 func GetAuth() *auth.Client {
 	return fireAuth
+}
+
+func GetDB() *db.Client {
+	return fireDB
 }

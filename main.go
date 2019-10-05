@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/jLemmings/GoCV/controllers"
@@ -28,20 +29,26 @@ func main() {
 		}
 	}
 
-	models.GetDB().AutoMigrate(
-		&models.User{},
-		&models.Experience{},
-		&models.Education{},
-	)
+	users, err := models.GetDB().NewRef("users").OrderByKey().GetOrdered(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	users := models.GetDB().First(&models.User{})
-	if users.Error != nil {
+	for _, r := range users {
+		var user models.User
+		if err := r.Unmarshal(&user); err != nil {
+			log.Fatalln("Error unmarshaling result:", err)
+		}
+		fmt.Println("USER WAS FOUND:", user.FirstName, user.LastName)
+	}
+
+	if users == nil {
 		fmt.Println(os.Getenv("firstName"))
 		if os.Getenv("firstName") == "" || os.Getenv("lastName") == "" || os.Getenv("email") == "" || os.Getenv("password") == "" || os.Getenv("github") == "" {
 			log.Fatal("For setup please enter your user information.")
 		}
 
-		models.InitializeDB(os.Getenv("firstName"), os.Getenv("lastName"), os.Getenv("email"), os.Getenv("password"), os.Getenv("github"))
+		models.InitializeFirstUser(os.Getenv("firstName"), os.Getenv("lastName"), os.Getenv("email"), os.Getenv("password"), os.Getenv("github"))
 	}
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -57,7 +64,6 @@ func main() {
 	protectedRoutes.HandleFunc("/users", controllers.CreateUser).Methods("POST")
 	protectedRoutes.HandleFunc("/users/{id}", controllers.UpdateUserClaim).Methods("POST")
 	protectedRoutes.HandleFunc("/users", controllers.GetUsers).Methods("GET")
-	protectedRoutes.HandleFunc("/users/{id}", controllers.DeleteUser).Methods("DELETE")
 	protectedRoutes.HandleFunc("/users/{id}", controllers.UpdateUser).Methods("PUT")
 
 	protectedRoutes.Use(middleware.AuthMiddleware)
