@@ -5,6 +5,7 @@ import (
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"firebase.google.com/go/db"
+	"github.com/joho/godotenv"
 	"google.golang.org/api/option"
 	"log"
 	"os"
@@ -14,6 +15,13 @@ var fireAuth *auth.Client
 var fireDB *db.Client
 
 func init() {
+	if os.Getenv("ENV") != "PROD" {
+		err := godotenv.Load()
+		if err != nil {
+			log.Println("Error loading .env.production file")
+		}
+	}
+
 	ctx := context.Background()
 	var opt option.ClientOption
 	if os.Getenv("ENV") == "PROD" {
@@ -23,7 +31,7 @@ func init() {
 	}
 
 	config := &firebase.Config{
-		DatabaseURL: "https://golang-cv-dev.firebaseio.com/",
+		DatabaseURL: os.Getenv("DATABASE_URL"),
 	}
 
 	app, err := firebase.NewApp(ctx, config, opt)

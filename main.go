@@ -23,7 +23,6 @@ func helloWorld(w http.ResponseWriter, r *http.Request) {
 func main() {
 	if os.Getenv("ENV") != "PROD" {
 		err := godotenv.Load()
-
 		if err != nil {
 			log.Println("Error loading .env.production file")
 		}
