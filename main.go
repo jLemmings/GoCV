@@ -56,7 +56,6 @@ func main() {
 	router.Use(middleware.LogMiddleware)
 
 	router.HandleFunc("/users/{id}", controllers.GetUser).Methods("GET")
-	router.HandleFunc("/projects/{id}", controllers.GetProjects).Methods("GET")
 	router.HandleFunc("/", helloWorld).Methods("GET")
 
 	protectedRoutes := router.PathPrefix("").Subrouter()

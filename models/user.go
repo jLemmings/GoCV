@@ -4,20 +4,22 @@ import (
 	"context"
 	"firebase.google.com/go/auth"
 	"fmt"
+	"github.com/google/go-github/v28/github"
 	"github.com/jLemmings/GoCV/utils"
 	"log"
 )
 
 type User struct {
-	ID            string `gorm:"primary_key"`
+	ID            string
 	FirstName     string
 	LastName      string
 	Email         string
-	Password      string `gorm:"-"`
+	Password      string
 	Bio           string
 	GithubProfile string
-	Experience    Experience `gorm:"foreignkey:UserID"`
-	Education     Education  `gorm:"foreignkey:UserID"`
+	Experience    Experience
+	Education     Education
+	Projects      []*github.Repository
 }
 
 func (user *User) Validate() (map[string]interface{}, bool) {
@@ -86,8 +88,10 @@ func GetUser(userId string) *User {
 		if err := r.Unmarshal(&user); err != nil {
 			log.Fatalln("Error unmarshaling result:", err)
 		}
+		user.Projects = getProjects(user.GithubProfile)
 		return &user
 	}
+
 	return &User{}
 }
 
@@ -124,4 +128,42 @@ func InitializeFirstUser(firstName string, lastName string, email string, passwo
 
 	log.Println(user)
 	user.Create()
+}
+
+func getProjects(githubProfile string) []*github.Repository {
+	opt := &github.RepositoryListOptions{Type: "public"}
+
+	var allRepos []*github.Repository
+	for {
+		repos, resp, err := GetGitClient().Repositories.List(context.Background(), githubProfile, opt)
+		utils.HandleErr(err)
+		allRepos = append(allRepos, repos...)
+		if resp.NextPage == 0 {
+			break
+		}
+		opt.Page = resp.NextPage
+	}
+
+	var responseRepos []Project
+	for _, repo := range allRepos {
+
+		var project Project
+
+		project.Name = *repo.Name
+		project.URL = *repo.HTMLURL
+		project.LastUpdate = *repo.UpdatedAt
+
+		if repo.Description != nil {
+			project.Name = *repo.Name
+		}
+
+		if repo.Language != nil {
+			project.Language = *repo.Language
+		}
+
+		responseRepos = append(responseRepos, project)
+
+	}
+
+	return allRepos
 }
