@@ -7,20 +7,22 @@ import (
 	"github.com/google/go-github/v28/github"
 	"github.com/jLemmings/GoCV/utils"
 	"log"
+	"strings"
 	"time"
 )
 
 type User struct {
-	ID            string
-	FirstName     string
-	LastName      string
-	Email         string
-	Password      string
-	Bio           string
-	GithubProfile string
-	Experience    []Experience
-	Education     []Education
-	Projects      []Project
+	ID              string
+	ProfileImageURL string
+	FirstName       string
+	LastName        string
+	Email           string
+	Password        string
+	Bio             string
+	GithubProfile   string
+	Experience      []Experience
+	Education       []Education
+	Projects        []Project
 }
 
 func (user *User) Validate() (map[string]interface{}, bool) {
@@ -114,14 +116,15 @@ func GetUser(userId string) *User {
 func UpdateUser(userId string, userToUpdate User) *User {
 	user := &User{}
 	err := GetDB().NewRef("users"+userId).Update(context.Background(), map[string]interface{}{
-		"FirstName":     userToUpdate.FirstName,
-		"LastName":      userToUpdate.LastName,
-		"Email":         userToUpdate.Email,
-		"Password":      userToUpdate.Password,
-		"Bio":           userToUpdate.Password,
-		"GithubProfile": userToUpdate.GithubProfile,
-		"Experience":    userToUpdate.Experience,
-		"Education":     userToUpdate.Education,
+		"ProfileImageURL": userToUpdate.ProfileImageURL,
+		"FirstName":       userToUpdate.FirstName,
+		"LastName":        userToUpdate.LastName,
+		"Email":           userToUpdate.Email,
+		"Password":        userToUpdate.Password,
+		"Bio":             userToUpdate.Password,
+		"GithubProfile":   userToUpdate.GithubProfile,
+		"Experience":      userToUpdate.Experience,
+		"Education":       userToUpdate.Education,
 	})
 
 	if err != nil {
@@ -132,14 +135,15 @@ func UpdateUser(userId string, userToUpdate User) *User {
 
 func InitializeFirstUser(firstName string, lastName string, email string, password string, github string) {
 	user := User{
-		FirstName:     firstName,
-		LastName:      lastName,
-		Email:         email,
-		Password:      password,
-		Bio:           "",
-		GithubProfile: github,
-		Experience:    []Experience{},
-		Education:     []Education{},
+		ProfileImageURL: "",
+		FirstName:       firstName,
+		LastName:        lastName,
+		Email:           email,
+		Password:        password,
+		Bio:             "",
+		GithubProfile:   github,
+		Experience:      []Experience{},
+		Education:       []Education{},
 	}
 
 	log.Println(user)
@@ -150,6 +154,7 @@ func getProjects(githubProfile string) []Project {
 	opt := &github.RepositoryListOptions{Type: "public"}
 
 	var allRepos []*github.Repository
+
 	for {
 		repos, resp, err := GetGitClient().Repositories.List(context.Background(), githubProfile, opt)
 		utils.HandleErr(err)
@@ -161,16 +166,16 @@ func getProjects(githubProfile string) []Project {
 	}
 
 	var responseRepos []Project
+
 	for _, repo := range allRepos {
 
 		var project Project
-
 		project.Name = *repo.Name
 		project.URL = *repo.HTMLURL
 		project.LastUpdate = *repo.UpdatedAt
 
 		if repo.Description != nil {
-			project.Name = *repo.Name
+			project.Stack = strings.Split(*repo.Description, ",")
 		}
 
 		if repo.Language != nil {
