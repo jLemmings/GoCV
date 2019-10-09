@@ -9,5 +9,6 @@ type Project struct {
 	Description string
 	Language    string
 	URL         string
+	Stack       []string
 	LastUpdate  github.Timestamp
 }
