@@ -19,8 +19,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		uid := r.Header.Get("authorization")
 		if uid != "" {
-			fmt.Println("UID: ", uid)
 			user, err := models.GetAuth().VerifyIDToken(context.Background(), uid)
+			fmt.Println("UID: ", user.UID)
 			utils.HandleErr(err)
 			claims := user.Claims
 			if admin, ok := claims["admin"]; ok {
@@ -30,7 +30,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				}
 			} else {
 				fmt.Println("IN NOT OK: ", ok)
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				// TODO: REMOVE AFTER IMPLEMENTATION
+				next.ServeHTTP(w, r)
+				// http.Error(w, "Forbidden", http.StatusForbidden)
 			}
 		} else {
 			fmt.Println("No UID")

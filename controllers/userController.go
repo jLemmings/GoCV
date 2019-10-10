@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jLemmings/GoCV/models"
 	"github.com/jLemmings/GoCV/utils"
+	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -68,4 +69,47 @@ var UpdateUserClaim = func(w http.ResponseWriter, r *http.Request) {
 	resp := utils.Message(true, "success")
 	fmt.Print("Added Claim: ", user.CustomClaims, "to UID: ", user.UID)
 	utils.Respond(w, resp)
+}
+
+var CreateBackup = func(w http.ResponseWriter, r *http.Request) {
+	request := mux.Vars(r)
+	id := request["id"]
+	fmt.Println(id)
+
+	fmt.Println("IN CREATE BACKUP")
+	results, err := models.GetDB().NewRef("users").OrderByKey().GetOrdered(context.Background())
+	if err != nil {
+		log.Fatal("RESULTS ERROR: ", err)
+	}
+
+	if len(results) != 0 {
+		var user models.User
+		for _, r := range results {
+			err := r.Unmarshal(&user)
+			if err != nil {
+				log.Fatalln("Error unmarshaling result:", err)
+			}
+			if user.ID == id {
+				fmt.Println("USER WAS FOUND:", user.ID)
+			}
+		}
+
+		fileName := "temp/" + user.ID + "_backup.bak"
+
+		userByte, err := json.Marshal(user)
+
+		if err != nil {
+			fmt.Println("Byte ERROR: ", err)
+		}
+		err = ioutil.WriteFile(fileName, userByte, 0644)
+		if err != nil {
+			fmt.Println("File ERROR: ", err)
+		}
+		http.ServeFile(w, r, fileName)
+	} else {
+		resp := utils.Message(true, "failed")
+		resp["data"] = "NO RESULTS FOUND"
+		utils.Respond(w, resp)
+	}
+
 }

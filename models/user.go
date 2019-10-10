@@ -75,6 +75,7 @@ func (user *User) Create() map[string]interface{} {
 		To:        time.Time{},
 	}}
 
+	user.Password = ""
 	err = GetDB().NewRef("users/"+user.ID).Set(context.Background(), user)
 	if err != nil {
 		log.Fatal(err)
