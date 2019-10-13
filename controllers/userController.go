@@ -7,7 +7,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jLemmings/GoCV/models"
 	"github.com/jLemmings/GoCV/utils"
-	"io/ioutil"
 	"log"
 	"net/http"
 )
@@ -94,6 +93,8 @@ var CreateBackup = func(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		/**
+
 		fileName := "temp/" + user.ID + "_backup.bak"
 
 		userByte, err := json.Marshal(user)
@@ -105,11 +106,61 @@ var CreateBackup = func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println("File ERROR: ", err)
 		}
-		http.ServeFile(w, r, fileName)
+
+		downloadBytes, err := ioutil.ReadFile(fileName)
+		fileSize := len(string(downloadBytes))
+		mime := http.DetectContentType(downloadBytes)
+
+		w.Header().Set("Content-Type", mime)
+		w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+		w.Header().Set("Expires", "0")
+		w.Header().Set("Content-Transfer-Encoding", "binary")
+		w.Header().Set("Content-Length", strconv.Itoa(fileSize))
+		w.Header().Set("Content-Control", "private, no-transform, no-store, must-revalidate")
+
+		http.ServeContent(w, r, fileName, time.Now(), bytes.NewReader(downloadBytes))
+		*/
+
+		resp := utils.Message(true, "success")
+		resp["data"] = user
+		utils.Respond(w, resp)
 	} else {
 		resp := utils.Message(true, "failed")
 		resp["data"] = "NO RESULTS FOUND"
 		utils.Respond(w, resp)
 	}
+
+}
+
+var RestoreBackup = func(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	var user models.User
+	err := decoder.Decode(&user)
+	if err != nil {
+		panic(err)
+	}
+
+	err = models.GetDB().NewRef("users").Set(context.Background(), map[string]*models.User{
+		user.ID: {
+			ID:              user.ID,
+			ProfileImageURL: user.ProfileImageURL,
+			FirstName:       user.FirstName,
+			LastName:        user.LastName,
+			Email:           user.Email,
+			Password:        user.Password,
+			Bio:             user.Bio,
+			GithubProfile:   user.GithubProfile,
+			Experience:      user.Experience,
+			Education:       user.Education,
+		},
+	})
+
+	if err != nil {
+		log.Fatalln("Error setting value:", err)
+	}
+
+	resp := utils.Message(true, "success")
+	resp["data"] = "Restored backup successfully"
+	utils.Respond(w, resp)
 
 }

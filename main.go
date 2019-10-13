@@ -64,6 +64,7 @@ func main() {
 	protectedRoutes.HandleFunc("/users", controllers.GetUsers).Methods("GET")
 	protectedRoutes.HandleFunc("/users/{id}", controllers.UpdateUser).Methods("PUT")
 	protectedRoutes.HandleFunc("/backup/{id}", controllers.CreateBackup).Methods("GET")
+	protectedRoutes.HandleFunc("/backup/{id}", controllers.RestoreBackup).Methods("POST")
 
 	protectedRoutes.Use(middleware.AuthMiddleware)
 
